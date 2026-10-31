@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5fa8">
+<title>出張英会話</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  /* 見た目は仮。デザインが決まったら、この色の決まりを差し替える */
+  :root{
+    --bg:#f6f7f9; --card:#fff; --text:#1d232b; --sub:#5b6573; --line:#dde2e8;
+    --accent:#1f5fa8; --accent-soft:#e6eef8; --ok:#1e7a3c; --ng:#b3361f;
+    --lv-just:#1e7a3c; --lv-just-bg:#e3f3e8;
+    --lv-polite:#6a3fa0; --lv-polite-bg:#efe7f8;
+    --lv-casual:#a0520b; --lv-casual-bg:#fcecdc;
+    --lv-text:#555f6b; --lv-text-bg:#eceff2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;font-size:17px;line-height:1.6}
+  #app{max-width:520px;margin:0 auto;padding:12px 16px 40px}
+  h1{font-size:22px;margin:6px 0 12px}
+  h2{font-size:19px;margin:18px 0 8px}
+  .top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .top h1{flex:1;margin:0}
+  button{font:inherit;cursor:pointer}
+  .btn{min-height:48px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:17px}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.wide{width:100%;display:block;margin:8px 0}
+  .btn.small{min-height:40px;padding:6px 12px;font-size:15px}
+  .btn:disabled{opacity:.45}
+  .back{min-height:44px;padding:6px 12px;border:none;background:none;color:var(--accent);font-size:17px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+  .scene-card{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
+  .scene-card .emoji{font-size:32px}
+  .scene-card .name{font-size:19px;font-weight:bold}
+  .bar{display:block;height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:6px}
+  .bar i{display:block;height:100%;background:var(--accent)}
+  .badge{display:inline-block;font-size:13px;padding:2px 8px;border-radius:10px;background:#fff4c2;color:#7a5a00;font-weight:bold;margin-left:6px}
+  .sub{color:var(--sub);font-size:15px}
+  .tag{display:inline-block;font-size:13px;padding:2px 10px;border-radius:10px;font-weight:bold}
+  .lv-just{color:var(--lv-just);background:var(--lv-just-bg)}
+  .lv-polite{color:var(--lv-polite);background:var(--lv-polite-bg)}
+  .lv-casual{color:var(--lv-casual);background:var(--lv-casual-bg)}
+  .lv-text{color:var(--lv-text);background:var(--lv-text-bg)}
+  .en{font-size:24px;font-weight:bold;line-height:1.35;margin:8px 0}
+  .ja{font-size:18px}
+  .note{font-size:15px;color:var(--sub);margin-top:6px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .row > .btn{flex:1}
+  .mic{display:block;margin:16px auto 8px;width:88px;height:88px;border-radius:50%;border:none;background:var(--ng);color:#fff;font-size:38px;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+  .mic.on{animation:pulse 1s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(179,54,31,.5)}100%{box-shadow:0 0 0 18px rgba(179,54,31,0)}}
+  .center{text-align:center}
+  .result{min-height:52px;text-align:center;margin:6px 0}
+  .result .ok{color:var(--ok);font-weight:bold;font-size:19px}
+  .result .ng{color:var(--ng);font-weight:bold;font-size:19px}
+  .phrase-row{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0}
+  .phrase-row .pen{font-weight:bold;font-size:17px}
+  .marks{font-size:13px;color:var(--sub)}
+  .marks b{color:var(--ok)}
+  .bubble{border-radius:14px;padding:10px 12px;margin:8px 0;max-width:88%}
+  .bubble.them{background:#eceff2}
+  .bubble.me{background:var(--accent-soft);margin-left:auto}
+  .bubble .sub{font-size:14px}
+  textarea,input[type=text],select{width:100%;font:inherit;font-size:17px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
+  textarea{min-height:90px}
+  label{display:block;margin:10px 0 4px;font-weight:bold}
+  .check{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:normal;margin:0}
+  .check input{width:22px;height:22px}
+  .ear-now{min-height:150px;text-align:center;padding:16px 4px}
+  .ear-now .ja{font-size:22px}
+  .ear-now .en{font-size:28px}
+  .big{min-height:96px;font-size:24px;border-radius:20px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1d232b;color:#fff;padding:12px 18px;border-radius:12px;font-size:15px;z-index:9;max-width:90%;text-align:center}
+  .memo{display:flex;gap:8px;align-items:flex-start}
+  .memo .txt{flex:1}
+  .done{opacity:.5;text-decoration:line-through}
+  .warn{background:#fff4e5;border:1px solid #f3c58b;border-radius:10px;padding:10px;font-size:15px;margin:10px 0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ===== 最初から入っている場面・言い方・会話 =====
+const LEVELS = {
+  just:   {label:'ちょうどいい丁寧さ', cls:'lv-just'},
+  polite: {label:'丁寧すぎる',         cls:'lv-polite'},
+  casual: {label:'くだけた言い方',     cls:'lv-casual'},
+  text:   {label:'教科書っぽい',       cls:'lv-text'},
+};
+
+const SCENES = [
+  {id:'taxi',    name:'タクシー',     emoji:'🚕'},
+  {id:'hotel',   name:'ホテル',       emoji:'🏨'},
+  {id:'airport', name:'空港',         emoji:'✈️'},
+  {id:'food',    name:'食事・買い物', emoji:'🍔'},
+  {id:'reply',   name:'返事・お礼',   emoji:'🙏'},
+];
+
+const PHRASES = [
+  // タクシー
+  {id:'t1', scene:'taxi', en:'Could you call a taxi for me?', ja:'タクシーを呼んでもらえますか？', lv:'just'},
+  {id:'t2', scene:'taxi', en:'Could you call a taxi that takes cards?', ja:'カードで払えるタクシーを呼んでもらえますか？', lv:'just', note:'takes cards ＝ カードが使える'},
+  {id:'t3', scene:'taxi', en:'To this address, please.', ja:'この住所までお願いします', lv:'just', note:'スマホの地図や住所を見せながら'},
+  {id:'t4', scene:'taxi', en:'Can I pay by card?', ja:'カードで払えますか？', lv:'just'},
+  {id:'t5', scene:'taxi', en:'How long does it take?', ja:'どのくらい時間がかかりますか？', lv:'just'},
+  {id:'t6', scene:'taxi', en:'Please use the meter.', ja:'メーターを使ってください', lv:'just'},
+  {id:'t7', scene:'taxi', en:'Could you stop here, please?', ja:'ここで止めてもらえますか？', lv:'just'},
+  {id:'t8', scene:'taxi', en:'Keep the change.', ja:'おつりは取っておいてください', lv:'just'},
+  {id:'t9', scene:'taxi', en:'Would you be so kind as to call a taxi for me?', ja:'タクシーを呼んでいただけますでしょうか', lv:'polite', note:'間違いではないが、ホテルではここまで丁寧でなくてよい'},
+  {id:'t10',scene:'taxi', en:'Get me a cab.', ja:'タクシー呼んで', lv:'casual', note:'命令のように聞こえるので、お願いするときは使わない'},
+  // ホテル
+  {id:'h1', scene:'hotel', en:"Hi, I'd like to check in.", ja:'チェックインをお願いします', lv:'just'},
+  {id:'h2', scene:'hotel', en:'I have a reservation.', ja:'予約しています', lv:'just'},
+  {id:'h3', scene:'hotel', en:'Could I get some new towels, please?', ja:'新しいタオルをもらえますか？', lv:'just'},
+  {id:'h4', scene:'hotel', en:'What time is breakfast?', ja:'朝食は何時ですか？', lv:'just'},
+  {id:'h5', scene:'hotel', en:"What's the Wi-Fi password?", ja:'Wi-Fiのパスワードは何ですか？', lv:'just'},
+  {id:'h6', scene:'hotel', en:"The air conditioner doesn't work.", ja:'エアコンが動きません', lv:'just'},
+  {id:'h7', scene:'hotel', en:'Could you keep my luggage?', ja:'荷物を預かってもらえますか？', lv:'just'},
+  {id:'h8', scene:'hotel', en:'Could I have a late checkout?', ja:'チェックアウトを遅くできますか？', lv:'just'},
+  {id:'h9', scene:'hotel', en:"I'd like to check out.", ja:'チェックアウトをお願いします', lv:'just'},
+  {id:'h10',scene:'hotel', en:'I would like to request a replacement of my towels.', ja:'タオルの交換をお願いしたいのですが', lv:'text', note:'正しいが長くて堅い。new towels で十分'},
+  // 空港
+  {id:'a1', scene:'airport', en:"Where's the check-in counter?", ja:'チェックインカウンターはどこですか？', lv:'just'},
+  {id:'a2', scene:'airport', en:'Window seat, please.', ja:'窓側の席をお願いします', lv:'just'},
+  {id:'a3', scene:'airport', en:'Aisle seat, please.', ja:'通路側の席をお願いします', lv:'just', note:'aisle は「アイル」と読む'},
+  {id:'a4', scene:'airport', en:'Can I take this on board?', ja:'これは機内に持ち込めますか？', lv:'just'},
+  {id:'a5', scene:'airport', en:'Where is gate 12?', ja:'12番ゲートはどこですか？', lv:'just'},
+  {id:'a6', scene:'airport', en:'Is this flight on time?', ja:'この便は予定どおりですか？', lv:'just'},
+  {id:'a7', scene:'airport', en:"I'm here on business.", ja:'仕事で来ました', lv:'just', note:'入国審査で目的を聞かれたとき'},
+  {id:'a8', scene:'airport', en:"I'm staying for five days.", ja:'5日間滞在します', lv:'just'},
+  {id:'a9', scene:'airport', en:'Where can I get a taxi?', ja:'タクシー乗り場はどこですか？', lv:'just'},
+  {id:'a10',scene:'airport', en:'I am visiting for the purpose of business.', ja:'ビジネス目的での訪問です', lv:'text', note:"通じるが堅い。I'm here on business. が自然"},
+  // 食事・買い物
+  {id:'f1', scene:'food', en:"I'd like this burger, please.", ja:'このハンバーガーをください', lv:'just'},
+  {id:'f2', scene:'food', en:'Can I get this one?', ja:'これください', lv:'casual', note:'お店ではよく使う気軽な言い方。失礼ではない'},
+  {id:'f3', scene:'food', en:'For here, please.', ja:'店内で食べます', lv:'just'},
+  {id:'f4', scene:'food', en:'To go, please.', ja:'持ち帰りでお願いします', lv:'just'},
+  {id:'f5', scene:'food', en:'No ice, please.', ja:'氷なしでお願いします', lv:'just'},
+  {id:'f6', scene:'food', en:'Not too spicy, please.', ja:'辛さ控えめでお願いします', lv:'just'},
+  {id:'f7', scene:'food', en:'Check, please.', ja:'お会計をお願いします', lv:'just'},
+  {id:'f8', scene:'food', en:'How much is this?', ja:'これはいくらですか？', lv:'just'},
+  {id:'f9', scene:'food', en:'Do you take cards?', ja:'カードは使えますか？', lv:'just'},
+  {id:'f10',scene:'food', en:"I'm just looking, thanks.", ja:'見ているだけです、ありがとう', lv:'just'},
+  // 返事・お礼
+  {id:'r1', scene:'reply', en:'Yes, please.', ja:'はい、お願いします', lv:'just'},
+  {id:'r2', scene:'reply', en:'No, thank you.', ja:'いいえ、けっこうです', lv:'just'},
+  {id:'r3', scene:'reply', en:'Thank you so much.', ja:'本当にありがとうございます', lv:'just'},
+  {id:'r4', scene:'reply', en:'I appreciate it.', ja:'感謝します', lv:'just', note:'手間をかけてもらったときに'},
+  {id:'r5', scene:'reply', en:'Sorry, could you say that again?', ja:'すみません、もう一度言ってもらえますか？', lv:'just'},
+  {id:'r6', scene:'reply', en:'Could you speak a little slower?', ja:'もう少しゆっくり話してもらえますか？', lv:'just'},
+  {id:'r7', scene:'reply', en:'Excuse me.', ja:'すみません（呼びかけ）', lv:'just'},
+  {id:'r8', scene:'reply', en:"That's perfect, thank you.", ja:'ばっちりです、ありがとう', lv:'just'},
+  {id:'r9', scene:'reply', en:'Yeah.', ja:'うん', lv:'casual', note:'なれなれしく聞こえることがある。返事は Yes. のほうが気持ちいい'},
+  {id:'r10',scene:'reply', en:'I beg your pardon?', ja:'何とおっしゃいましたか？', lv:'polite', note:'少し古風で堅い。Sorry? や Could you say that again? で十分'},
+];
+
+const DIALOGS = {
+  taxi: {role:'ホテルのフロント係（タクシーを呼んでもらう場面）', lines:[
+    {who:'them', en:'Hi, how can I help you?', ja:'こんにちは、ご用件は？'},
+    {who:'me',   en:'Could you call a taxi for me?', ja:'タクシーを呼んでもらえますか？'},
+    {who:'them', en:'Sure. Where are you going?', ja:'かしこまりました。どちらまで？'},
+    {who:'me',   en:'To this address, please.', ja:'この住所までお願いします'},
+    {who:'them', en:"OK. It'll be here in five minutes.", ja:'5分ほどで来ます'},
+    {who:'me',   en:'Thank you so much.', ja:'本当にありがとうございます'},
+  ]},
+  hotel: {role:'ホテルのフロント係（部屋から電話する場面）', lines:[
+    {who:'them', en:'Front desk, how can I help you?', ja:'フロントです。ご用件は？'},
+    {who:'me',   en:'Could I get some new towels, please?', ja:'新しいタオルをもらえますか？'},
+    {who:'them', en:"Of course. What's your room number?", ja:'もちろんです。お部屋の番号は？'},
+    {who:'me',   en:'Room 512.', ja:'512号室です'},
+    {who:'them', en:"We'll bring them right away.", ja:'すぐにお持ちします'},
+    {who:'me',   en:'Thank you so much.', ja:'本当にありがとうございます'},
+  ]},
+  airport: {role:'空港のチェックインカウンターの係員', lines:[
+    {who:'them', en:'Hello. Where are you flying today?', ja:'こんにちは。今日はどちらまで？'},
+    {who:'me',   en:'To Tokyo.', ja:'東京です'},
+    {who:'them', en:'Window or aisle?', ja:'窓側と通路側、どちらにしますか？'},
+    {who:'me',   en:'Window seat, please.', ja:'窓側の席をお願いします'},
+    {who:'them', en:"Here's your boarding pass. Have a nice flight.", ja:'搭乗券です。よい旅を'},
+    {who:'me',   en:'Thank you.', ja:'ありがとう'},
+  ]},
+  food: {role:'ハンバーガー店の店員', lines:[
+    {who:'them', en:'Hi, what can I get for you?', ja:'いらっしゃいませ、ご注文は？'},
+    {who:'me',   en:"I'd like this burger, please.", ja:'このハンバーガーをください'},
+    {who:'them', en:'For here or to go?', ja:'店内ですか、お持ち帰りですか？'},
+    {who:'me',   en:'To go, please.', ja:'持ち帰りでお願いします'},
+    {who:'them', en:'Anything to drink?', ja:'お飲み物はいかがですか？'},
+    {who:'me',   en:'No, thank you.', ja:'いいえ、けっこうです'},
+  ]},
+  reply: {role:'レストランの店員（席で話しかけてくる場面）', lines:[
+    {who:'them', en:'Would you like some water?', ja:'お水はいかがですか？'},
+    {who:'me',   en:'Yes, please.', ja:'はい、お願いします'},
+    {who:'them', en:'Here you go.', ja:'どうぞ'},
+    {who:'me',   en:'Thank you so much.', ja:'本当にありがとうございます'},
+    {who:'them', en:'Do you need anything else?', ja:'ほかに何かご入用ですか？'},
+    {who:'me',   en:'No, thank you.', ja:'いいえ、けっこうです'},
+  ]},
+};
+
+// ===== スマホの中に保存する記録 =====
+const KEY = 'shucchou-eikaiwa-v1';
+const LEARN_TIMES = 3;
+function emptyStore(){ return {progress:{}, custom:[], customScenes:[], hidden:[], edits:{}, memos:[], rate:0.9}; }
+let store = load();
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.progress) return Object.assign(emptyStore(), s); }catch(e){}
+  return emptyStore();
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){ toast('保存できませんでした'); } }
+function prog(id){ return store.progress[id] || (store.progress[id] = {m:0, learned:false, said:false, used:false}); }
+
+function allScenes(){ return SCENES.concat(store.customScenes); }
+function sceneOf(id){ return allScenes().find(s => s.id === id) || {id, name:'（場面なし）', emoji:'📝'}; }
+function phrasesOf(sceneId){
+  const base = PHRASES.filter(p => p.scene === sceneId && !store.hidden.includes(p.id))
+                      .map(p => Object.assign({}, p, store.edits[p.id] || {}));
+  return base.concat(store.custom.filter(p => p.scene === sceneId));
+}
+function findPhrase(id){
+  const b = PHRASES.find(p => p.id === id);
+  if(b) return Object.assign({}, b, store.edits[id] || {});
+  return store.custom.find(p => p.id === id);
+}
+
+// ===== 部品 =====
+const $app = document.getElementById('app');
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function tag(lv){ const L = LEVELS[lv] || LEVELS.just; return `<span class="tag ${L.cls}">${L.label}</span>`; }
+function toast(msg){
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+}
+function header(title, backTo){
+  return `<div class="top">${backTo ? `<button class="back" onclick="${backTo}">‹ 戻る</button>` : ''}<h1>${esc(title)}</h1></div>`;
+}
+
+// ===== 読み上げ =====
+let voices = [];
+function loadVoices(){ voices = speechSynthesis.getVoices(); }
+if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function pickVoice(lang){
+  const list = voices.filter(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith(lang.toLowerCase()));
+  return list.find(v => /google/i.test(v.name)) || list[0] || null;
+}
+function speak(text, lang = 'en-US', rate){
+  return new Promise(resolve => {
+    if(!('speechSynthesis' in window)){ resolve(); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang; u.rate = rate ?? (lang.startsWith('en') ? store.rate : 1);
+    const v = pickVoice(lang.slice(0,2)); if(v) u.voice = v;
+    let done = false; const fin = () => { if(!done){ done = true; resolve(); } };
+    u.onend = fin; u.onerror = fin;
+    setTimeout(fin, 4000 + text.length * 200); // 終わりの合図が来ないときの保険
+    speechSynthesis.speak(u);
+  });
+}
+function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+// ===== 聞き取り（発音チェック） =====
+const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+function listen(){
+  return new Promise(resolve => {
+    if(!Rec){ resolve({error:'unsupported'}); return; }
+    if('speechSynthesis' in window) speechSynthesis.cancel();
+    rec = new Rec();
+    rec.lang = 'en-US'; rec.interimResults = false; rec.continuous = false; rec.maxAlternatives = 5;
+    let got = null;
+    rec.onresult = e => { got = Array.from(e.results[0]).map(a => a.transcript); };
+    rec.onerror = e => { if(!got) got = {error:e.error}; };
+    rec.onend = () => { rec = null; resolve(Array.isArray(got) ? {alts:got} : (got || {error:'no-speech'})); };
+    try{ rec.start(); }catch(e){ resolve({error:'start'}); }
+  });
+}
+const NUM = {zero:'0',one:'1',two:'2',three:'3',four:'4',five:'5',six:'6',seven:'7',eight:'8',nine:'9',ten:'10',eleven:'11',twelve:'12'};
+function words(s){
+  return s.toLowerCase().replace(/[’‘]/g,"'").replace(/-/g,'').replace(/'/g,'').replace(/[^a-z0-9\s]/g,' ')
+          .split(/\s+/).filter(Boolean).map(w => NUM[w] || w);
+}
+function score(target, heard){
+  const t = words(target), h = words(heard);
+  if(!t.length) return 0;
+  const pool = h.slice(); let hit = 0;
+  t.forEach(w => { const i = pool.indexOf(w); if(i >= 0){ hit++; pool.splice(i,1); } });
+  return hit / t.length;
+}
+function judge(target, res){
+  if(res.error) return {ok:false, error:res.error};
+  let best = {s:-1, text:''};
+  res.alts.forEach(a => { const s = score(target, a); if(s > best.s) best = {s, text:a}; });
+  return {ok: best.s >= 0.75, heard: best.text, s: best.s};
+}
+function errorText(code){
+  return ({
+    'unsupported':'この画面では聞き取りが使えません。AndroidのChromeで開いてください',
+    'not-allowed':'マイクの使用が許可されていません。ブラウザの設定でマイクを許可してください',
+    'no-speech':'声が聞こえませんでした。もう一度どうぞ',
+    'network':'インターネットにつながっていないため、聞き取りができません',
+  })[code] || '聞き取りがうまくいきませんでした。もう一度どうぞ';
+}
+function resultHtml(j){
+  if(j.error) return `<div class="ng">${esc(errorText(j.error))}</div>`;
+  return j.ok
+    ? `<div class="ok">◎ 聞き取れました</div><div class="sub">聞こえた言葉：${esc(j.heard)}</div>`
+    : `<div class="ng">△ もう少し</div><div class="sub">聞こえた言葉：${esc(j.heard)}</div>`;
+}
+
+// ===== ChatGPT に渡す =====
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+    let ok = false; try{ ok = document.execCommand('copy'); }catch(_){} ta.remove(); return ok;
+  }
+}
+async function toChatGPT(text){
+  const ok = await copyText(text);
+  toast(ok ? '質問の文をコピーしました。ChatGPTの入力欄に貼り付けて送ってください' : 'コピーできませんでした');
+  setTimeout(() => window.open('https://chatgpt.com/?q=' + encodeURIComponent(text), '_blank'), 600);
+}
+function askPrompt(p){
+  return `英会話の質問です。海外出張で「${p.en}」（${p.ja}）と言いたいです。\nこの言い方の丁寧さ、ほかの言い方、発音のコツを、英語初心者向けに日本語で短く教えてください。`;
+}
+const FORMAT = `英語：（英語の文）\n日本語：（日本語の意味）\n丁寧さ：（ちょうどいい丁寧さ／丁寧すぎる／くだけた言い方／教科書っぽい のどれか1つ）\nひとこと：（使うときのコツを20字くらいで）`;
+function convertPrompt(text){
+  return `次の日本語を、東南アジア出張（ホテル・タクシー・空港・お店）で使う、短い英語にしてください。\n「丁寧だけれど丁寧すぎない」言い方を1つ選んでください。\n答えは、次の形だけで書いてください（説明はいりません）。\n\n${FORMAT}\n\n日本語：${text}`;
+}
+function bulkPrompt(list){
+  return `次の日本語を、それぞれ東南アジア出張（ホテル・タクシー・空港・お店）で使う、短い英語にしてください。\n「丁寧だけれど丁寧すぎない」言い方を1つずつ選んでください。\n答えは、1つずつ次の形で、あいだに空行を入れて書いてください（説明はいりません）。\n\n${FORMAT}\n\n` + list.map((m,i) => `${i+1}. ${m.text}`).join('\n');
+}
+function levelFrom(s){
+  s = s || '';
+  if(/丁寧すぎ/.test(s)) return 'polite';
+  if(/くだけ|スラング|カジュアル/.test(s)) return 'casual';
+  if(/教科書/.test(s)) return 'text';
+  return 'just';
+}
+function parsePasted(text){
+  const out = []; let cur = null;
+  text.split(/\r?\n/).forEach(raw => {
+    const line = raw.replace(/\*\*/g,'').replace(/^\s*[-・\d.)]+\s*/,'').trim();
+    const m = line.match(/^(英語|日本語|丁寧さ|ひとこと)\s*[:：]\s*(.*)$/);
+    if(!m) return;
+    if(m[1] === '英語'){ cur = {en:m[2], ja:'', lv:'just', note:''}; out.push(cur); }
+    else if(cur){
+      if(m[1] === '日本語') cur.ja = m[2];
+      if(m[1] === '丁寧さ') cur.lv = levelFrom(m[2]);
+      if(m[1] === 'ひとこと') cur.note = m[2];
+    }
+  });
+  return out.filter(p => p.en);
+}
+
+// ===== 画面：ホーム =====
+let earRunning = false;
+function home(){
+  stopAll();
+  const memoCount = store.memos.filter(m => !m.done).length;
+  $app.innerHTML = `
+    <h1>出張英会話</h1>
+    <div class="sub">短い英語を「聞いてまねる → 言ってみる → 会話で使う」</div>
+    ${allScenes().map(s => {
+      const ps = phrasesOf(s.id), n = ps.length;
+      const learned = ps.filter(p => prog(p.id).learned).length;
+      const said = ps.filter(p => prog(p.id).said).length;
+      const perfect = n > 0 && said === n;
+      return `<button class="card scene-card" onclick="scene('${s.id}')">
+        <span class="emoji">${esc(s.emoji)}</span>
+        <span style="flex:1">
+          <span class="name">${esc(s.name)}</span>${perfect ? '<span class="badge">バッチリ</span>' : ''}<br>
+          <span class="sub">覚えた ${learned}/${n}　言えた ${said}/${n}</span>
+          <span class="bar"><i style="width:${n ? Math.round(said/n*100) : 0}%"></i></span>
+        </span></button>`;
+    }).join('')}
+    <button class="btn primary wide" onclick="ear()">🚗 耳だけモード</button>
+    <button class="btn wide" onclick="memo()">📝 言いたいことメモ${memoCount ? `（${memoCount}件）` : ''}</button>
+    <button class="btn wide" onclick="settings()">⚙ バックアップ・設定</button>`;
+}
+
+// ===== 画面：場面 =====
+function scene(id){
+  stopAll();
+  const s = sceneOf(id), ps = phrasesOf(id);
+  const hasDialog = !!DIALOGS[id];
+  $app.innerHTML = header(`${s.emoji} ${s.name}`, 'home()') + `
+    <div class="row">
+      <button class="btn primary" onclick="mimic('${id}')" ${ps.length ? '' : 'disabled'}>👂 聞いてまねる</button>
+      <button class="btn primary" onclick="cardMode('${id}')" ${ps.length ? '' : 'disabled'}>🃏 カードで試す</button>
+    </div>
+    <button class="btn wide" onclick="dialog('${id}')" ${hasDialog ? '' : 'disabled'}>💬 会話で使う${hasDialog ? '' : '（この場面には会話がありません）'}</button>
+    <h2>言い方（${ps.length}）</h2>
+    ${ps.map(p => {
+      const g = prog(p.id);
+      return `<button class="phrase-row" onclick="edit('${p.id}','${id}')">
+        <div class="pen">${esc(p.en)}</div>
+        <div>${esc(p.ja)}</div>
+        <div class="row" style="margin-top:4px">${tag(p.lv)}
+          <span class="marks">${g.learned ? '<b>✓覚えた</b>' : `まね ${g.m}/${LEARN_TIMES}`}　${g.said ? '<b>✓言えた</b>' : ''}　${g.used ? '⭐本番で使えた' : ''}</span>
+        </div></button>`;
+    }).join('') || '<div class="sub">まだ言い方がありません。</div>'}
+    <button class="btn wide" onclick="memo('${id}')">＋ この場面に言い方を足す</button>`;
+}
+
+// ===== 画面：聞いてまねる =====
+let cur = {list:[], i:0, scene:null};
+function mimic(id, keepIndex){
+  stopAll();
+  if(!keepIndex){
+    const ps = phrasesOf(id);
+    cur = {list: ps.filter(p => !prog(p.id).learned).concat(ps.filter(p => prog(p.id).learned)), i:0, scene:id};
+  }
+  const p = cur.list[cur.i], g = prog(p.id);
+  $app.innerHTML = header('👂 聞いてまねる', `scene('${id}')`) + `
+    <div class="sub">${cur.i+1} / ${cur.list.length}</div>
+    <div class="card">
+      ${tag(p.lv)}
+      <div class="en">${esc(p.en)}</div>
+      <div class="ja">${esc(p.ja)}</div>
+      ${p.note ? `<div class="note">💡 ${esc(p.note)}</div>` : ''}
+    </div>
+    <div class="center sub" id="count">${g.learned ? '✓ 覚えました' : `まねした回数 ${g.m} / ${LEARN_TIMES}`}</div>
+    <button class="mic" id="mic" onclick="mimicListen()">🎤</button>
+    <div class="result" id="res"><span class="sub">🔊で聞いて、🎤を押してまねしましょう</span></div>
+    <div class="row">
+      <button class="btn" onclick="speak(cur.list[cur.i].en)">🔊 お手本</button>
+      <button class="btn" onclick="toChatGPT(askPrompt(cur.list[cur.i]))">💬 ChatGPTに聞く</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn" onclick="step(-1, mimic)" ${cur.i ? '' : 'disabled'}>‹ 前へ</button>
+      <button class="btn primary" onclick="step(1, mimic)" ${cur.i < cur.list.length-1 ? '' : 'disabled'}>次へ ›</button>
+    </div>`;
+  speak(p.en);
+}
+function step(d, fn){ cur.i = Math.max(0, Math.min(cur.list.length-1, cur.i + d)); fn(cur.scene, true); }
+async function mimicListen(){
+  const p = cur.list[cur.i];
+  setMic(true); const j = judge(p.en, await listen()); setMic(false);
+  const box = document.getElementById('res'); if(!box) return;
+  box.innerHTML = resultHtml(j);
+  if(j.ok){
+    const g = prog(p.id);
+    if(!g.learned){ g.m++; if(g.m >= LEARN_TIMES){ g.learned = true; toast('「覚えた」になりました！'); } save(); }
+    document.getElementById('count').textContent = g.learned ? '✓ 覚えました' : `まねした回数 ${g.m} / ${LEARN_TIMES}`;
+  }
+}
+function setMic(on){ const m = document.getElementById('mic'); if(m){ m.classList.toggle('on', on); m.textContent = on ? '👂' : '🎤'; } }
+
+// ===== 画面：カードで試す =====
+function cardMode(id, keepIndex){
+  stopAll();
+  if(!keepIndex){
+    const ps = phrasesOf(id);
+    cur = {list: ps.filter(p => !prog(p.id).said).concat(ps.filter(p => prog(p.id).said)), i:0, scene:id};
+  }
+  const p = cur.list[cur.i], g = prog(p.id);
+  $app.innerHTML = header('🃏 カードで試す', `scene('${id}')`) + `
+    <div class="sub">${cur.i+1} / ${cur.list.length}　${g.said ? '✓言えた' : ''}</div>
+    <div class="card center">
+      <div class="sub">英語で言ってみましょう</div>
+      <div class="ja" style="font-size:22px;font-weight:bold;margin:10px 0">${esc(p.ja)}</div>
+    </div>
+    <button class="mic" id="mic" onclick="cardListen()">🎤</button>
+    <div class="result" id="res"></div>
+    <div id="answer"></div>
+    <button class="btn wide" onclick="showAnswer()">答えを見る</button>
+    <div class="row" style="margin-top:8px">
+      <button class="btn" onclick="step(-1, cardMode)" ${cur.i ? '' : 'disabled'}>‹ 前へ</button>
+      <button class="btn primary" onclick="step(1, cardMode)" ${cur.i < cur.list.length-1 ? '' : 'disabled'}>次へ ›</button>
+    </div>`;
+}
+function showAnswer(){
+  const p = cur.list[cur.i];
+  document.getElementById('answer').innerHTML = `<div class="card">${tag(p.lv)}<div class="en">${esc(p.en)}</div>
+    ${p.note ? `<div class="note">💡 ${esc(p.note)}</div>` : ''}
+    <div class="row" style="margin-top:8px"><button class="btn small" onclick="speak(cur.list[cur.i].en)">🔊 お手本</button>
+    <button class="btn small" onclick="toChatGPT(askPrompt(cur.list[cur.i]))">💬 ChatGPTに聞く</button></div></div>`;
+  speak(p.en);
+}
+async function cardListen(){
+  const p = cur.list[cur.i];
+  setMic(true); const j = judge(p.en, await listen()); setMic(false);
+  const box = document.getElementById('res'); if(!box) return;
+  box.innerHTML = resultHtml(j);
+  if(!j.error){
+    showAnswer();
+    if(j.ok){ const g = prog(p.id); if(!g.said){ g.said = true; save(); toast('「言えた」になりました！'); } }
+  }
+}
+
+// ===== 画面：会話で使う =====
+let dlg = {id:null, i:0, shown:[]};
+function dialog(id){
+  stopAll();
+  dlg = {id, i:0, shown:[]};
+  dialogStep();
+}
+function dialogRender(extra){
+  const d = DIALOGS[dlg.id];
+  $app.innerHTML = header('💬 会話で使う', `scene('${dlg.id}')`) + `
+    <div class="sub">相手：${esc(d.role)}</div>
+    ${dlg.shown.map(l => `<div class="bubble ${l.who}"><div>${l.who === 'them' ? '🔊 ' : '🎤 '}${esc(l.en)}</div><div class="sub">${esc(l.ja)}</div></div>`).join('')}
+    ${extra || ''}`;
+  window.scrollTo(0, document.body.scrollHeight);
+}
+async function dialogStep(){
+  const d = DIALOGS[dlg.id];
+  if(dlg.i >= d.lines.length){
+    dialogRender(`<div class="card center"><b>会話ができました！</b></div>
+      <button class="btn primary wide" onclick="dialog('${dlg.id}')">もう一度</button>
+      <button class="btn wide" onclick="toChatGPT(voicePrompt('${dlg.id}'))">🎙 ChatGPTの音声モードで続ける</button>
+      <div class="sub">頼み方の文をコピーします。ChatGPTに貼り付けて送ったあと、音声モードに切り替えてください。</div>`);
+    return;
+  }
+  const l = d.lines[dlg.i];
+  if(l.who === 'them'){
+    dlg.shown.push(l); dialogRender(`<div class="center sub">相手が話しています…</div>`);
+    const myId = dlg; await speak(l.en);
+    if(dlg !== myId) return;
+    dlg.i++; dialogStep();
+  }else{
+    dialogRender(`<div class="card"><div class="sub">あなたの番</div><div class="ja" style="font-weight:bold">${esc(l.ja)}</div><div id="hint"></div></div>
+      <button class="mic" id="mic" onclick="dialogListen()">🎤</button>
+      <div class="result" id="res"></div>
+      <div class="row"><button class="btn" onclick="showHint()">💡 ヒント</button>
+      <button class="btn" onclick="dialogNext()">答えを見て進む</button></div>`);
+  }
+}
+function showHint(){
+  const l = DIALOGS[dlg.id].lines[dlg.i];
+  document.getElementById('hint').innerHTML = `<div class="en">${esc(l.en)}</div>`;
+  speak(l.en);
+}
+async function dialogListen(){
+  const l = DIALOGS[dlg.id].lines[dlg.i];
+  setMic(true); const j = judge(l.en, await listen()); setMic(false);
+  const box = document.getElementById('res'); if(!box) return;
+  box.innerHTML = resultHtml(j);
+  if(j.ok){ await wait(900); dialogNext(); }
+}
+async function dialogNext(){
+  const l = DIALOGS[dlg.id].lines[dlg.i];
+  dlg.shown.push(l); dlg.i++;
+  dialogRender(''); const myId = dlg; await speak(l.en);
+  if(dlg === myId) dialogStep();
+}
+function voicePrompt(id){
+  return `英会話の練習相手になってください。あなたは東南アジアの${DIALOGS[id].role}です。私は日本人の出張者で、英語は初心者です。\n短くて簡単な英語で話しかけてください。私の英語が不自然だったら、会話が終わったあとで日本語で短く教えてください。\nでは、あなたから話し始めてください。`;
+}
+
+// ===== 画面：耳だけモード =====
+let earOpt = {scenes: null, onlyLearned:false, repeat:2};
+let wakeLock = null;
+function ear(){
+  stopAll();
+  if(!earOpt.scenes) earOpt.scenes = allScenes().map(s => s.id);
+  $app.innerHTML = header('🚗 耳だけモード', 'home()') + `
+    <div class="warn">運転中は画面を見ないでください。スマホはホルダーに置き、画面はつけたままにします（画面が消えると止まります）。</div>
+    <div id="earSetup">
+      <label>流す場面</label>
+      ${allScenes().map(s => `<label class="check"><input type="checkbox" ${earOpt.scenes.includes(s.id) ? 'checked' : ''} onchange="earToggle('${s.id}', this.checked)"> ${esc(s.emoji)} ${esc(s.name)}</label>`).join('')}
+      <label class="check"><input type="checkbox" ${earOpt.onlyLearned ? 'checked' : ''} onchange="earOpt.onlyLearned=this.checked"> 「覚えた」言い方だけ流す</label>
+      <label>お手本の英語を流す回数</label>
+      <select onchange="earOpt.repeat=+this.value">${[1,2,3].map(n => `<option value="${n}" ${earOpt.repeat===n?'selected':''}>${n}回</option>`).join('')}</select>
+    </div>
+    <div class="ear-now" id="earNow"></div>
+    <button class="btn primary wide big" id="earBtn" onclick="earRunning ? earStop() : earStart()">▶ 開始</button>`;
+}
+function earToggle(id, on){ earOpt.scenes = on ? earOpt.scenes.concat(id) : earOpt.scenes.filter(s => s !== id); }
+async function earStart(){
+  let list = earOpt.scenes.flatMap(id => phrasesOf(id));
+  if(earOpt.onlyLearned) list = list.filter(p => prog(p.id).learned);
+  if(!list.length){ toast('流す言い方がありません'); return; }
+  earRunning = true;
+  document.getElementById('earSetup').style.display = 'none';
+  const b = document.getElementById('earBtn'); b.textContent = '■ 停止'; b.classList.remove('primary');
+  try{ if('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+  const run = {};  earRun = run;
+  for(let k = 0; earRunning && earRun === run; k++){
+    const p = list[k % list.length];
+    const now = document.getElementById('earNow');
+    if(now) now.innerHTML = `<div class="sub">${k % list.length + 1} / ${list.length}</div><div class="ja">${esc(p.ja)}</div><div class="sub">（英語で言ってみましょう）</div>`;
+    await speak(p.ja, 'ja-JP', 1);
+    if(!earRunning || earRun !== run) break;
+    await wait(2500 + p.en.length * 60);
+    for(let r = 0; r < earOpt.repeat && earRunning && earRun === run; r++){
+      if(now) now.innerHTML = `<div class="sub">${k % list.length + 1} / ${list.length}</div><div class="ja">${esc(p.ja)}</div><div class="en">${esc(p.en)}</div>`;
+      await speak(p.en);
+      await wait(900);
+    }
+    await wait(800);
+  }
+}
+let earRun = null;
+function earStop(){
+  earRunning = false; earRun = null;
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock = null; }
+  if(document.getElementById('earBtn')) ear();
+}
+document.addEventListener('visibilitychange', async () => {
+  if(document.visibilityState === 'visible' && earRunning && 'wakeLock' in navigator){
+    try{ wakeLock = await navigator.wakeLock.request('screen'); }catch(e){}
+  }
+});
+function stopAll(){
+  if(earRunning){ earRunning = false; earRun = null; if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock = null; } }
+  dlg = {id:null, i:0, shown:[]};
+  if(rec){ try{ rec.abort(); }catch(e){} }
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+}
+
+// ===== 画面：言いたいことメモ・追加 =====
+let lastMemoId = null;
+function sceneOptions(sel){ return allScenes().map(s => `<option value="${s.id}" ${s.id===sel?'selected':''}>${esc(s.emoji)} ${esc(s.name)}</option>`).join(''); }
+function memo(sel){
+  stopAll();
+  const open = store.memos.filter(m => !m.done), done = store.memos.filter(m => m.done);
+  const defScene = sel || SCENES[0].id;
+  $app.innerHTML = header('📝 言いたいことメモ', sel ? `scene('${sel}')` : 'home()') + `
+    <div class="card">
+      <label for="memoText">言いたいこと（日本語で）</label>
+      <textarea id="memoText" placeholder="例：カードで払えるタクシーを呼んでほしい"></textarea>
+      <label for="memoScene">入れる場面</label>
+      <select id="memoScene">${sceneOptions(defScene)}</select>
+      <button class="btn primary wide" onclick="memoAdd()">メモに残す</button>
+    </div>
+
+    <h2>英語にしていないメモ（${open.length}）</h2>
+    ${open.map(m => `<div class="card memo"><div class="txt">${esc(m.text)}<div class="sub">${esc(sceneOf(m.scene).name)}</div></div>
+      <div><button class="btn small" onclick="memoGPT('${m.id}')">ChatGPTで英語にする</button><br>
+      <button class="btn small" style="margin-top:6px" onclick="memoDone('${m.id}', true)">済みにする</button></div></div>`).join('') || '<div class="sub">ありません</div>'}
+    ${open.length ? `<button class="btn wide" onclick="memoBulk()">📋 まとめてコピー（Claudeに頼む用）</button>` : ''}
+
+    <h2>英語を貼り付けて追加</h2>
+    <div class="card">
+      <div class="sub">ChatGPTやClaudeの答え（「英語：」「日本語：」「丁寧さ：」の形）をそのまま貼り付けてください。いくつでもまとめて入れられます。</div>
+      <textarea id="paste" placeholder="英語：Could you call a taxi that takes cards?&#10;日本語：カードで払えるタクシーを呼んでもらえますか？&#10;丁寧さ：ちょうどいい丁寧さ&#10;ひとこと：takes cards でカードが使える"></textarea>
+      <label for="pasteScene">入れる場面</label>
+      <select id="pasteScene">${sceneOptions(lastMemoId ? (store.memos.find(m => m.id === lastMemoId)||{}).scene || defScene : defScene)}</select>
+      <button class="btn primary wide" onclick="pasteAdd()">貼り付けた言い方を追加</button>
+    </div>
+
+    <h2>新しい場面を作る</h2>
+    <div class="card">
+      <label for="newSceneName">場面の名前</label>
+      <input type="text" id="newSceneName" placeholder="例：会議の受付、両替">
+      <label for="newSceneEmoji">しるし（絵文字1つ）</label>
+      <input type="text" id="newSceneEmoji" value="📌">
+      <button class="btn wide" onclick="sceneAdd()">場面を作る</button>
+    </div>
+
+    ${done.length ? `<h2>済みのメモ（${done.length}）</h2>` + done.map(m => `<div class="card memo"><div class="txt done">${esc(m.text)}</div>
+      <div><button class="btn small" onclick="memoDone('${m.id}', false)">戻す</button> <button class="btn small" onclick="memoDel('${m.id}')">削除</button></div></div>`).join('') : ''}`;
+}
+function memoAdd(){
+  const t = document.getElementById('memoText').value.trim();
+  if(!t){ toast('言いたいことを書いてください'); return; }
+  store.memos.push({id:'m'+Date.now(), text:t, scene:document.getElementById('memoScene').value, done:false});
+  save(); toast('メモに残しました'); memo();
+}
+function memoGPT(id){
+  const m = store.memos.find(x => x.id === id); lastMemoId = id;
+  toChatGPT(convertPrompt(m.text));
+  setTimeout(() => memo(), 800);
+}
+function memoBulk(){
+  const open = store.memos.filter(m => !m.done);
+  copyText(bulkPrompt(open)).then(ok => toast(ok ? 'コピーしました。Claudeとの会話に貼り付けてください' : 'コピーできませんでした'));
+}
+function memoDone(id, v){ const m = store.memos.find(x => x.id === id); m.done = v; save(); memo(); }
+function memoDel(id){ if(!confirm('このメモを削除しますか？')) return; store.memos = store.memos.filter(x => x.id !== id); save(); memo(); }
+function pasteAdd(){
+  const items = parsePasted(document.getElementById('paste').value);
+  if(!items.length){ toast('「英語：」で始まる行が見つかりませんでした'); return; }
+  const sc = document.getElementById('pasteScene').value;
+  items.forEach((p, k) => store.custom.push({id:'c'+Date.now()+'_'+k, scene:sc, en:p.en, ja:p.ja, lv:p.lv, note:p.note}));
+  // 貼り付けた日本語と同じ、または直前にChatGPTへ送ったメモは「済み」にする
+  store.memos.forEach(m => { if(!m.done && (m.id === lastMemoId || items.some(p => p.ja && (p.ja.includes(m.text) || m.text.includes(p.ja))))) m.done = true; });
+  lastMemoId = null;
+  save(); toast(`${items.length}個の言い方を「${sceneOf(sc).name}」に追加しました`); memo();
+}
+function sceneAdd(){
+  const name = document.getElementById('newSceneName').value.trim();
+  if(!name){ toast('場面の名前を書いてください'); return; }
+  const emoji = document.getElementById('newSceneEmoji').value.trim() || '📌';
+  const s = {id:'s'+Date.now(), name, emoji};
+  store.customScenes.push(s); if(earOpt.scenes) earOpt.scenes.push(s.id);
+  save(); toast(`場面「${name}」を作りました`); memo(s.id);
+}
+
+// ===== 画面：言い方の編集 =====
+function edit(id, back){
+  stopAll();
+  const p = findPhrase(id), g = prog(id), isCustom = id.startsWith('c');
+  $app.innerHTML = header('言い方の編集', `scene('${back}')`) + `
+    <div class="card">
+      <label for="eEn">英語</label><input type="text" id="eEn" value="${esc(p.en)}">
+      <label for="eJa">日本語</label><input type="text" id="eJa" value="${esc(p.ja)}">
+      <label for="eLv">丁寧さ</label>
+      <select id="eLv">${Object.entries(LEVELS).map(([k,L]) => `<option value="${k}" ${p.lv===k?'selected':''}>${L.label}</option>`).join('')}</select>
+      <label for="eNote">ひとこと</label><input type="text" id="eNote" value="${esc(p.note || '')}">
+      <label for="eScene">場面</label><select id="eScene">${sceneOptions(p.scene)}</select>
+      <label class="check" style="margin-top:12px"><input type="checkbox" id="eUsed" ${g.used ? 'checked' : ''}> ⭐ 本番で使えた！</label>
+      <button class="btn primary wide" onclick="editSave('${id}','${back}')">保存</button>
+    </div>
+    <button class="btn wide" onclick="speak(document.getElementById('eEn').value)">🔊 読み上げてみる</button>
+    <button class="btn wide" onclick="toChatGPT(askPrompt({en:document.getElementById('eEn').value, ja:document.getElementById('eJa').value}))">💬 ChatGPTに聞く</button>
+    <button class="btn wide" onclick="resetProg('${id}','${back}')">練習の記録をはじめに戻す</button>
+    <button class="btn wide" style="color:var(--ng)" onclick="editDel('${id}','${back}')">この言い方を削除</button>
+    ${isCustom ? '' : '<div class="sub">最初から入っている言い方です。削除すると一覧に出なくなります。</div>'}`;
+}
+function editSave(id, back){
+  const v = {en:eEn.value.trim(), ja:eJa.value.trim(), lv:eLv.value, note:eNote.value.trim(), scene:eScene.value};
+  if(!v.en){ toast('英語を入れてください'); return; }
+  if(id.startsWith('c')) Object.assign(store.custom.find(p => p.id === id), v);
+  else store.edits[id] = v;
+  prog(id).used = eUsed.checked;
+  save(); toast('保存しました'); scene(back);
+}
+function resetProg(id, back){ if(!confirm('この言い方の「まねした回数・覚えた・言えた」を消しますか？')) return; store.progress[id] = {m:0, learned:false, said:false, used:prog(id).used}; save(); edit(id, back); }
+function editDel(id, back){
+  if(!confirm('この言い方を削除しますか？')) return;
+  if(id.startsWith('c')) store.custom = store.custom.filter(p => p.id !== id);
+  else store.hidden.push(id);
+  delete store.progress[id];
+  save(); toast('削除しました'); scene(back);
+}
+
+// ===== 画面：バックアップ・設定 =====
+function settings(){
+  stopAll();
+  $app.innerHTML = header('⚙ バックアップ・設定', 'home()') + `
+    <h2>お手本の英語の速さ</h2>
+    <select onchange="store.rate=+this.value; save(); speak('Could you call a taxi for me?')">
+      ${[[0.7,'ゆっくり'],[0.9,'少しゆっくり'],[1,'ふつう']].map(([v,l]) => `<option value="${v}" ${store.rate===v?'selected':''}>${l}</option>`).join('')}
+    </select>
+    <h2>バックアップ</h2>
+    <div class="sub">練習の記録・自分で足した言い方・メモは、このスマホの中だけに保存されています。ときどきバックアップを保存しておくと安心です。</div>
+    <button class="btn primary wide" onclick="backupSave()">💾 バックアップを保存</button>
+    <label for="restore" class="btn wide" style="text-align:center;font-weight:normal">📂 バックアップから戻す</label>
+    <input type="file" id="restore" accept=".json,application/json" style="display:none" onchange="backupLoad(this)">
+    <h2>このアプリについて</h2>
+    <div class="sub">見た目は仮です。発音チェックはスマホの音声認識を使います（インターネットが必要です）。</div>`;
+}
+function backupSave(){
+  const d = new Date(), name = `出張英会話_バックアップ_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  const blob = new Blob([JSON.stringify(store, null, 1)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('バックアップを保存しました（ダウンロードの中）');
+}
+function backupLoad(input){
+  const f = input.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const s = JSON.parse(r.result);
+      if(!s || !s.progress) throw 0;
+      if(!confirm('今の記録を、このバックアップの内容に置きかえますか？')) return;
+      store = Object.assign(emptyStore(), s); save(); toast('バックアップから戻しました'); home();
+    }catch(e){ toast('このファイルは読み込めませんでした'); }
+  };
+  r.readAsText(f);
+}
+
+home();
+</script>
+</body>
+</html>
